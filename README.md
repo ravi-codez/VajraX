@@ -163,4 +163,82 @@ with every request, ensuring coherent follow-up answers.
 
 - Chroma chosen for simplicity and persistence  
 - REST APIs preferred for security and control  
-- POST requests used for large, non-idempotent payloads  
+- POST requests used for large, non-idempotent payloads
+
+
+## 🛠️ Setup & Usage Instructions
+
+Follow the steps below to set up and run the project locally.
+
+### Prerequisites
+- Python 3.9+
+- Node.js 18+
+- npm
+- Git
+- OpenAI API Key
+
+---
+
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/<your-username>/<repository-name>.git
+cd <repository-name>
+```
+
+---
+
+### Step 2: Backend Setup (FastAPI)
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate        # macOS / Linux
+# venv\Scripts\activate         # Windows
+
+pip install -r requirements.txt
+```
+
+Create a `.env` file inside the `backend` directory:
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+Start the backend server:
+```bash
+uvicorn main:app --reload
+```
+
+Backend will be available at:
+```
+http://127.0.0.1:8000
+```
+
+---
+
+### Step 3: Frontend Setup (React)
+Open a new terminal window:
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Frontend will be available at:
+```
+http://localhost:3000
+```
+
+---
+
+### Step 4: Using the Application
+1. Upload a document (PDF / TXT / DOCX / CSV / etc.)
+2. Wait for the document to be processed and embedded
+3. Ask questions using the chat interface
+4. The system retrieves relevant context and generates grounded responses
+
+
+---
+
+### Notes
+- The backend is stateless; conversation history is maintained on the frontend.
+- Vector embeddings are stored persistently using Chroma.
+- API keys are managed via environment variables and are not committed to GitHub.
