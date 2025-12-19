@@ -18,10 +18,10 @@ information from a document corpus and uses it to generate accurate answers.
 flowchart TD
     U["User (Browser)"]
 
-    FE["React Frontend (Node.js)
-    - Chat UI (ChatGPT-like)
+    FE["Frontend (Node.js)
+    - Chat UI
     - File Upload
-    - Chat History (State)"]
+    - Chat History"]
 
     BE["FastAPI Backend (Python)
     - API Layer
