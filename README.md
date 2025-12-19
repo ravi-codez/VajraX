@@ -18,7 +18,7 @@ information from a document corpus and uses it to generate accurate answers.
 flowchart TD
     U["User (Browser)"]
 
-    FE["Frontend (Node.js)
+    FE["React Frontend 
     - Chat UI
     - File Upload
     - Chat History"]
