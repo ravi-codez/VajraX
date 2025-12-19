@@ -12,140 +12,155 @@ The goal of this project is to design a RAG-based system that retrieves relevant
 information from a document corpus and uses it to generate accurate answers.
 
 
-## High-Level Architecture
+## 🏗️ System Architecture
 
-┌─────────────────┐
-│   User (Browser)│
-└────────┬────────┘
-         │
-         ▼
-┌──────────────────────────┐
-│ React Frontend (Node.js) │
-│ - Chat UI (ChatGPT-like) │
-│ - File Upload            │
-│ - Chat History (State)   │
-└────────┬─────────────────┘
-         │  REST APIs (POST)
-         ▼
-┌──────────────────────────┐
-│ FastAPI Backend (Python) │
-│ - API Layer              │
-│ - Session Handling       │
-│ - Prompt Construction    │
-└────────┬─────────────────┘
-         │
-         ▼
-┌──────────────────────────┐
-│ RAG Processing Pipeline  │
-│ - PDF Loader             │
-│ - Text Chunking          │
-│ - Embedding Generation   │
-│ - Retriever (MMR)        │
-└────────┬─────────────────┘
-         │
-         ├───────────────┐
-         ▼               ▼
-┌─────────────────┐   ┌─────────────────┐
-│ Vector DB       │   │ OpenAI LLM      │
-│ (Chroma)        │   │ (Chat Model)    │
-│ - Embeddings    │   │ - Answer Gen    │
-└─────────────────┘   └─────────────────┘
-         │
-         ▼
-┌──────────────────────────┐
-│ Final Answer (JSON)      │
-└────────┬─────────────────┘
-         ▼
-┌──────────────────────────┐
-│ React UI renders answer  │
-└──────────────────────────┘
+```mermaid
+flowchart TD
+    U["User (Browser)"]
 
+    FE["React Frontend (Node.js)
+    - Chat UI (ChatGPT-like)
+    - File Upload
+    - Chat History (State)"]
 
-User → Frontend (Node.js)
-     → Backend API (FastAPI)
-     → RAG Pipeline
-     → Vector Database (Chroma)
-     → LLM (OpenAI)
-     → Response to User
+    BE["FastAPI Backend (Python)
+    - API Layer
+    - Session Handling
+    - Prompt Construction"]
 
+    RAG["RAG Processing Pipeline
+    - PDF Loader
+    - Text Chunking
+    - Embedding Generation
+    - Retriever (MMR)"]
 
-### RAG-Based Design Choice
+    VDB["Vector DB (Chroma)
+    - Embeddings"]
 
-A Retrieval-Augmented Generation approach was selected to reduce hallucinations
-and ensure responses are grounded in the provided document corpus.
+    LLM["OpenAI LLM (Chat Model)
+    - Answer Generation"]
 
-### Document Ingestion
+    FA["Final Answer (JSON)"]
 
-Documents are uploaded via the frontend and processed once.
-Text is extracted, cleaned, and prepared for chunking.
+    UI["React UI renders answer"]
 
+    U --> FE
+    FE -->|"REST API (POST)"| BE
+    BE --> RAG
+    RAG --> VDB
+    RAG --> LLM
+    VDB --> RAG
+    LLM --> FA
+    FA --> UI
+```
 
-### Chunking Strategy
+---
 
-Recursive Character Chunking with overlap was used to preserve semantic meaning
-while maintaining manageable chunk sizes for embedding generation.
+## 🔄 Request–Response Flow
 
+User → Frontend (Node.js)  
+→ Backend API (FastAPI)  
+→ RAG Processing Pipeline  
+→ Vector Database (Chroma)  
+→ LLM (OpenAI)  
+→ Final response returned to the user  
 
-### Embedding Strategy
+---
+
+## 🧠 RAG-Based Design Choice
+
+A Retrieval-Augmented Generation (RAG) approach is used to reduce hallucinations
+by grounding LLM responses in a trusted document corpus. This separation of
+retrieval and generation improves factual correctness and reliability.
+
+---
+
+## 📄 Document Ingestion
+
+Documents are uploaded via the frontend and processed once on the backend.
+Text is extracted, cleaned, and prepared for chunking before embedding generation.
+
+---
+
+## ✂️ Chunking Strategy
+
+Recursive Character Chunking with overlap is used to:
+- Preserve semantic continuity
+- Prevent context fragmentation
+- Optimize chunk size for embeddings
+
+---
+
+## 🔢 Embedding Strategy
 
 Dense vector embeddings are generated using an OpenAI embedding model.
 These embeddings capture semantic meaning rather than exact keyword matches.
 
+---
 
-### Vector Database
+## 🗂️ Vector Database
 
-A persistent vector store (Chroma) is used to store embeddings and metadata.
-Persistence avoids recomputation and improves performance for repeated queries.
+Chroma is used as a persistent vector database to store embeddings and metadata.
+Persistence avoids recomputation and speeds up future queries.
 
-### Retrieval Strategy
+---
 
-Cosine similarity is used to compare query embeddings with document embeddings.
-Max Marginal Relevance (MMR) is applied to ensure diversity in retrieved chunks.
+## 🔍 Retrieval Strategy
 
+- Cosine similarity for semantic matching  
+- Max Marginal Relevance (MMR) to ensure diversity in retrieved chunks  
 
-### Prompt Engineering
+---
 
-The final prompt includes:
+## 🧩 Prompt Engineering
+
+Each prompt sent to the LLM contains:
 - Retrieved document context
-- Previous conversation history
-- Current user query
+- Conversation history
+- Current user query  
 
 This enables multi-turn, context-aware responses.
 
+---
 
-### Conversation Memory
+## 💬 Conversation Memory
 
-Conversation history is maintained on the frontend and explicitly sent to the backend
-with each query, allowing the LLM to handle follow-up questions coherently.
+Conversation history is maintained on the frontend and passed explicitly to the backend
+with every request, ensuring coherent follow-up answers.
 
+---
 
-## Query Handling Flow
+## 🔄 Query Handling Flow
 
-1. User submits a question via frontend
-2. Backend embeds the query
-3. Relevant document chunks are retrieved
-4. Context + history are passed to LLM
-5. Final answer is generated and returned
+1. User submits a query through the frontend  
+2. Backend embeds the query  
+3. Relevant document chunks are retrieved  
+4. Context and history are injected into the prompt  
+5. LLM generates the final response  
 
+---
 
-## Cloud Deployment Strategy
+## ☁️ Cloud Deployment Strategy
 
-- Frontend deployed using Azure Static Web Apps
-- Backend deployed using Azure App Service
-- Environment variables used for API key management
-- HTTPS and CORS enabled for secure communication
+- Frontend: Azure Static Web Apps  
+- Backend: Azure App Service  
+- Environment variables for API key management  
+- HTTPS and CORS enabled  
 
-## Technology Stack
+---
 
-- Frontend: React (Node.js)
-- Backend: FastAPI (Python)
-- Vector Database: Chroma
-- Embeddings & LLM: OpenAI
-- Cloud Platform: Microsoft Azure
+## 🧰 Technology Stack
 
+- Frontend: React (Node.js)  
+- Backend: FastAPI (Python)  
+- Vector Database: Chroma  
+- Embeddings & LLM: OpenAI  
+- Cloud Platform: Microsoft Azure  
 
-## Design Decisions and Trade-offs
+---
 
-- Chroma was chosen for simplicity and local persistence.
-- REST APIs were preferred over direct LLM calls for security.
-- POST requests were used due to large payload sizes and non-idempotent operations.
+## ⚖️ Design Decisions and Trade-offs
+
+- Chroma chosen for simplicity and persistence  
+- REST APIs preferred for security and control  
+- POST requests used for large, non-idempotent payloads  
