@@ -1,70 +1,244 @@
-# Getting Started with Create React App
+# Mini RAG-Powered Assistant
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project implements a Retrieval-Augmented Generation (RAG) based assistant
+that answers user queries using a custom document corpus. The system integrates
+document retrieval with large language models to provide grounded and context-aware responses.
 
-## Available Scripts
 
-In the project directory, you can run:
+## Problem Statement
 
-### `npm start`
+Traditional LLMs generate responses without awareness of private or custom documents.
+The goal of this project is to design a RAG-based system that retrieves relevant
+information from a document corpus and uses it to generate accurate answers.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🏗️ System Architecture
 
-### `npm test`
+```mermaid
+flowchart TD
+    U["User (Browser)"]
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+    FE["React Frontend 
+    - Chat UI
+    - File Upload
+    - Chat History"]
 
-### `npm run build`
+    BE["FastAPI Backend (Python)
+    - API Layer
+    - Session Handling
+    - Prompt Construction"]
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    RAG["RAG Processing Pipeline
+    - PDF Loader
+    - Text Chunking
+    - Embedding Generation
+    - Retriever (MMR)"]
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    VDB["Vector DB (Chroma)
+    - Embeddings"]
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+    LLM["OpenAI LLM (Chat Model)
+    - Answer Generation"]
 
-### `npm run eject`
+    FA["Final Answer (JSON)"]
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+    UI["React UI renders answer"]
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    U --> FE
+    FE -->|"REST API (POST)"| BE
+    BE --> RAG
+    RAG --> VDB
+    RAG --> LLM
+    VDB --> RAG
+    LLM --> FA
+    FA --> UI
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🔄 Request–Response Flow
 
-## Learn More
+User → Frontend (Node.js)  
+→ Backend API (FastAPI)  
+→ RAG Processing Pipeline  
+→ Vector Database (Chroma)  
+→ LLM (OpenAI)  
+→ Final response returned to the user  
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🧠 RAG-Based Design Choice
 
-### Code Splitting
+A Retrieval-Augmented Generation (RAG) approach is used to reduce hallucinations
+by grounding LLM responses in a trusted document corpus. This separation of
+retrieval and generation improves factual correctness and reliability.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## 📄 Document Ingestion
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Documents are uploaded via the frontend and processed once on the backend.
+Text is extracted, cleaned, and prepared for chunking before embedding generation.
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## ✂️ Chunking Strategy
 
-### Advanced Configuration
+Recursive Character Chunking with overlap is used to:
+- Preserve semantic continuity
+- Prevent context fragmentation
+- Optimize chunk size for embeddings
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## 🔢 Embedding Strategy
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Dense vector embeddings are generated using an OpenAI embedding model.
+These embeddings capture semantic meaning rather than exact keyword matches.
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 🗂️ Vector Database
+
+Chroma is used as a persistent vector database to store embeddings and metadata.
+Persistence avoids recomputation and speeds up future queries.
+
+---
+
+## 🔍 Retrieval Strategy
+
+- Cosine similarity for semantic matching  
+- Max Marginal Relevance (MMR) to ensure diversity in retrieved chunks  
+
+---
+
+## 🧩 Prompt Engineering
+
+Each prompt sent to the LLM contains:
+- Retrieved document context
+- Conversation history
+- Current user query  
+
+This enables multi-turn, context-aware responses.
+
+---
+
+## 💬 Conversation Memory
+
+Conversation history is maintained on the frontend and passed explicitly to the backend
+with every request, ensuring coherent follow-up answers.
+
+---
+
+## 🔄 Query Handling Flow
+
+1. User submits a query through the frontend  
+2. Backend embeds the query  
+3. Relevant document chunks are retrieved  
+4. Context and history are injected into the prompt  
+5. LLM generates the final response  
+
+---
+
+## ☁️ Cloud Deployment Strategy
+
+- Frontend: Azure Static Web Apps  
+- Backend: Azure App Service  
+- Environment variables for API key management  
+- HTTPS and CORS enabled  
+
+---
+
+## 🧰 Technology Stack
+
+- Frontend: React (Node.js)  
+- Backend: FastAPI (Python)  
+- Vector Database: Chroma  
+- Embeddings & LLM: OpenAI  
+- Cloud Platform: Microsoft Azure  
+
+---
+
+## ⚖️ Design Decisions and Trade-offs
+
+- Chroma chosen for simplicity and persistence  
+- REST APIs preferred for security and control  
+- POST requests used for large, non-idempotent payloads
+
+
+## 🛠️ Setup & Usage Instructions
+
+Follow the steps below to set up and run the project locally.
+
+### Prerequisites
+- Python 3.9+
+- Node.js 18+
+- npm
+- Git
+- OpenAI API Key
+
+---
+
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/<your-username>/<repository-name>.git
+cd <repository-name>
+```
+
+---
+
+### Step 2: Backend Setup (FastAPI)
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate        # macOS / Linux
+# venv\Scripts\activate         # Windows
+
+pip install -r requirements.txt
+```
+
+Create a `.env` file inside the `backend` directory:
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+Start the backend server:
+```bash
+uvicorn main:app --reload
+```
+
+Backend will be available at:
+```
+http://127.0.0.1:8000
+```
+
+---
+
+### Step 3: Frontend Setup (React)
+Open a new terminal window:
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Frontend will be available at:
+```
+http://localhost:3000
+```
+
+---
+
+### Step 4: Using the Application
+1. Upload a document (PDF / TXT / DOCX / CSV / etc.)
+2. Wait for the document to be processed and embedded
+3. Ask questions using the chat interface
+4. The system retrieves relevant context and generates grounded responses
+
+
+---
+
+### Notes
+- The backend is stateless; conversation history is maintained on the frontend.
+- Vector embeddings are stored persistently using Chroma.
+- API keys are managed via environment variables and are not committed to GitHub.
