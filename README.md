@@ -14,6 +14,53 @@ information from a document corpus and uses it to generate accurate answers.
 
 ## High-Level Architecture
 
+┌─────────────────┐
+│   User (Browser)│
+└────────┬────────┘
+         │
+         ▼
+┌──────────────────────────┐
+│ React Frontend (Node.js) │
+│ - Chat UI (ChatGPT-like) │
+│ - File Upload            │
+│ - Chat History (State)   │
+└────────┬─────────────────┘
+         │  REST APIs (POST)
+         ▼
+┌──────────────────────────┐
+│ FastAPI Backend (Python) │
+│ - API Layer              │
+│ - Session Handling       │
+│ - Prompt Construction    │
+└────────┬─────────────────┘
+         │
+         ▼
+┌──────────────────────────┐
+│ RAG Processing Pipeline  │
+│ - PDF Loader             │
+│ - Text Chunking          │
+│ - Embedding Generation   │
+│ - Retriever (MMR)        │
+└────────┬─────────────────┘
+         │
+         ├───────────────┐
+         ▼               ▼
+┌─────────────────┐   ┌─────────────────┐
+│ Vector DB       │   │ OpenAI LLM      │
+│ (Chroma)        │   │ (Chat Model)    │
+│ - Embeddings    │   │ - Answer Gen    │
+└─────────────────┘   └─────────────────┘
+         │
+         ▼
+┌──────────────────────────┐
+│ Final Answer (JSON)      │
+└────────┬─────────────────┘
+         ▼
+┌──────────────────────────┐
+│ React UI renders answer  │
+└──────────────────────────┘
+
+
 User → Frontend (Node.js)
      → Backend API (FastAPI)
      → RAG Pipeline
